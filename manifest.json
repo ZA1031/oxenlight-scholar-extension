@@ -1,0 +1,58 @@
+{
+    "manifest_version": 3,
+    "name": "OXenLight Scholar",
+    "version": "1.0.0",
+    "description": "Quickly request academic papers for your research library",
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://www.oxenlight.com/*",
+        "https://*.sciencedirect.com/*",
+        "https://*.ieeexplore.ieee.org/*",
+        "https://*.springer.com/*",
+        "https://*.nature.com/*",
+        "https://*.arxiv.org/*",
+        "https://scholar.google.com/*"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "OXenLight Scholar",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ],
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "welcome.html"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
+}

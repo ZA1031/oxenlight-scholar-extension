@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to OXenLight Scholar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: start;
+            margin-bottom: 30px;
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-right: 20px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .feature-content h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .feature-content p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .steps {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .steps h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            display: flex;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .step-content p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .cta {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .supported-sites {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .supported-sites h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .sites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .site-badge {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            color: #555;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Welcome to OXenLight Scholar</h1>
+            <p>Request academic papers with one click, directly from journal websites</p>
+        </div>
+
+        <div class="content">
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-content">
+                    <h3>Lightning Fast</h3>
+                    <p>No more copying and pasting paper details. Our extension automatically extracts all the
+                        information you need.</p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🔍</div>
+                <div class="feature-content">
+                    <h3>Smart Detection</h3>
+                    <p>Works on 10+ major academic platforms including IEEE, Springer, Nature, ScienceDirect, and more.
+                    </p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-content">
+                    <h3>Secure & Private</h3>
+                    <p>Your credentials are safely stored and all communication is encrypted. Student-only access
+                        ensures security.</p>
+                </div>
+            </div>
+
+            <div class="steps">
+                <h2>How to Get Started</h2>
+
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Pin the Extension</h4>
+                        <p>Click the puzzle icon (🧩) in your Chrome toolbar, find OXenLight Scholar, and click the pin
+                            icon to keep it visible.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Login with Your Student Account</h4>
+                        <p>Click the extension icon and enter your OXenLight Scholar student credentials to
+                            authenticate.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Browse and Request</h4>
+                        <p>Navigate to any academic paper online, click the extension, and request it with one click!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Check Your Platform</h4>
+                        <p>Your requested paper will appear in the "Requested Papers" tab on the OXenLight Scholar
+                            platform for review.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="supported-sites">
+                <h3>✨ Supported Academic Platforms</h3>
+                <div class="sites-grid">
+                    <div class="site-badge">ScienceDirect</div>
+                    <div class="site-badge">IEEE Xplore</div>
+                    <div class="site-badge">Springer</div>
+                    <div class="site-badge">Nature</div>
+                    <div class="site-badge">arXiv</div>
+                    <div class="site-badge">PubMed</div>
+                    <div class="site-badge">Google Scholar</div>
+                    <div class="site-badge">ACM Library</div>
+                    <div class="site-badge">JSTOR</div>
+                    <div class="site-badge">Wiley</div>
+                    <div class="site-badge">+ Many More</div>
+                </div>
+            </div>
+
+            <div class="cta">
+                <button class="btn" onclick="window.close()">Get Started</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
