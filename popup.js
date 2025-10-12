@@ -14,6 +14,7 @@ const errorEl = document.getElementById('error-message');
 // State
 let currentPaperData = null;
 let userSession = null;
+let extractedPaperTitle = null;
 
 // Initialize when popup opens
 document.addEventListener('DOMContentLoaded', async () => {
@@ -95,7 +96,8 @@ async function extractPaperInfo() {
         const paperData = results[0]?.result;
         
         if (paperData && paperData.title) {
-            displayPaperInfo(paperData);
+            extractedPaperTitle = paperData.title;
+            await fetchPaperMetadata(paperData.title);
         } else {
             showManualForm();
         }
@@ -105,11 +107,68 @@ async function extractPaperInfo() {
     }
 }
 
+async function fetchPaperMetadata(paperTitle) {
+    try {
+        showLoading('Fetching paper metadata from database...');
+        
+        const apiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/auto_fill_paper_details`;
+        console.log('Fetching metadata from:', apiUrl);
+        
+        const formData = new URLSearchParams();
+        formData.append('paper_title', paperTitle);
+        
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData,
+            credentials: 'include'
+        });
+        
+        console.log('Metadata API response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Metadata API result:', result);
+        
+        if (result.status === 'success' && result.data && result.data.length > 0) {
+            // Use the best matching paper (first result after sorting by similarity)
+            const bestMatch = result.data[0];
+            displayPaperInfo(bestMatch);
+        } else {
+            // Fall back to basic extracted data
+            const fallbackData = {
+                title: paperTitle,
+                authors: 'Not available',
+                venue: 'Not available',
+                year: 'Not available',
+                summary: 'No metadata found in database'
+            };
+            displayPaperInfo(fallbackData);
+        }
+    } catch (error) {
+        console.error('Error fetching paper metadata:', error);
+        // Fall back to basic extracted data
+        const fallbackData = {
+            title: paperTitle,
+            authors: 'Not available',
+            venue: 'Not available',
+            year: 'Not available',
+            summary: 'Error fetching metadata'
+        };
+        displayPaperInfo(fallbackData);
+    }
+}
+
 function displayPaperInfo(paperData) {
     document.getElementById('paper-title').textContent = paperData.title || 'Unknown Title';
     document.getElementById('paper-authors').textContent = paperData.authors || 'Authors not available';
     document.getElementById('paper-venue').textContent = paperData.venue || 'Venue not available';
-    document.getElementById('paper-year').textContent = paperData.year || 'Year not available';
+    document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Year not available';
     
     // Store paper data for later use
     currentPaperData = paperData;
@@ -121,6 +180,11 @@ function displayPaperInfo(paperData) {
 function showManualForm() {
     hideAllSections();
     manualFormEl.classList.remove('hidden');
+    
+    // If we have an extracted title, pre-fill it
+    if (extractedPaperTitle) {
+        document.getElementById('manual-title').value = extractedPaperTitle;
+    }
 }
 
 function showLoading(message = 'Loading...') {
@@ -146,7 +210,11 @@ function setupEventListeners() {
     document.getElementById('submit-manual').addEventListener('click', submitManualRequest);
     document.getElementById('cancel-manual').addEventListener('click', () => {
         manualFormEl.classList.add('hidden');
-        paperInfoEl.classList.remove('hidden');
+        if (currentPaperData) {
+            paperInfoEl.classList.remove('hidden');
+        } else {
+            showManualForm();
+        }
     });
     
     // Footer actions
@@ -288,7 +356,11 @@ async function submitManualRequest() {
         authors: document.getElementById('manual-authors').value.trim(),
         year: document.getElementById('manual-year').value.trim(),
         venue: document.getElementById('manual-venue').value.trim(),
-        link: await getCurrentTabUrl() || ''
+        link: await getCurrentTabUrl() || '',
+        type: 'Article',
+        summary: '',
+        citations: 0,
+        peer_reviewed: 0
     };
     
     await submitPaperRequest(paperData);
@@ -303,11 +375,11 @@ async function submitPaperRequest(paperData) {
             paper_link: paperData.link || '',
             authors: paperData.authors || '',
             year_published: paperData.year || '',
-            type: 'Article',
-            summary: paperData.abstract || '',
+            type: paperData.type || 'Article',
+            summary: paperData.summary || '',
             venue: paperData.venue || '',
             citations: paperData.citations || 0,
-            peer_reviewed: paperData.peerReviewed ? 1 : 0
+            peer_reviewed: paperData.peer_reviewed || 0
         };
         
         const apiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/create`;
@@ -352,6 +424,7 @@ async function handleLogout() {
         await clearStorage();
         userSession = null;
         currentPaperData = null;
+        extractedPaperTitle = null;
         
         showLoginForm();
     } catch (error) {
@@ -417,20 +490,49 @@ function extractPaperDataFromPage() {
         paperData.venue = document.querySelector('.c-article-info-details')?.textContent?.trim();
         paperData.year = document.querySelector('.c-bibliographic-information__value')?.textContent?.match(/\d{4}/)?.[0];
     }
-    // Generic fallback
+    // ACM Digital Library
+    else if (hostname.includes('acm.org')) {
+        paperData.title = document.querySelector('.citation__title')?.textContent?.trim() ||
+                         document.querySelector('h1')?.textContent?.trim();
+        paperData.authors = Array.from(document.querySelectorAll('.loa__item-name'))
+            .map(el => el.textContent?.trim())
+            .join(', ');
+        paperData.venue = document.querySelector('.epub-section__title')?.textContent?.trim();
+        paperData.year = document.querySelector('.citation__year')?.textContent?.trim();
+    }
+    // arXiv
+    else if (hostname.includes('arxiv.org')) {
+        paperData.title = document.querySelector('.title math')?.textContent?.trim() ||
+                         document.querySelector('.title')?.textContent?.replace('Title:', '').trim();
+        paperData.authors = Array.from(document.querySelectorAll('.authors a'))
+            .map(el => el.textContent?.trim())
+            .join(', ');
+        paperData.venue = 'arXiv';
+        paperData.year = document.querySelector('.dateline')?.textContent?.match(/\d{4}/)?.[0];
+    }
+    // Generic fallback - try meta tags first
     else {
-        paperData.title = document.querySelector('meta[property="og:title"]')?.content ||
-                         document.querySelector('meta[name="citation_title"]')?.content ||
+        // Try citation meta tags (common across academic sites)
+        const citationTitle = document.querySelector('meta[name="citation_title"]')?.content;
+        const citationAuthors = document.querySelectorAll('meta[name="citation_author"]');
+        const citationJournal = document.querySelector('meta[name="citation_journal_title"]')?.content;
+        const citationDate = document.querySelector('meta[name="citation_publication_date"]')?.content;
+        const citationYear = document.querySelector('meta[name="citation_year"]')?.content;
+        
+        paperData.title = citationTitle ||
+                         document.querySelector('meta[property="og:title"]')?.content ||
                          document.title;
         
-        paperData.authors = document.querySelector('meta[name="citation_author"]')?.content ||
-                           document.querySelector('meta[name="author"]')?.content;
+        if (citationAuthors.length > 0) {
+            paperData.authors = Array.from(citationAuthors)
+                .map(meta => meta.content)
+                .join(', ');
+        } else {
+            paperData.authors = document.querySelector('meta[name="author"]')?.content || 'Not available';
+        }
         
-        paperData.venue = document.querySelector('meta[name="citation_journal_title"]')?.content ||
-                         document.querySelector('meta[name="citation_conference"]')?.content;
-        
-        paperData.year = document.querySelector('meta[name="citation_publication_date"]')?.content ||
-                        document.querySelector('meta[name="citation_year"]')?.content;
+        paperData.venue = citationJournal || 'Not available';
+        paperData.year = citationYear || citationDate?.match(/\d{4}/)?.[0] || 'Not available';
     }
     
     paperData.link = window.location.href;
