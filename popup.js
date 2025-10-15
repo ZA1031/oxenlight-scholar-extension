@@ -40,7 +40,7 @@ async function initializeExtension() {
             // Check if this is first install and show welcome page
             const isFirstRun = await checkFirstRun();
             if (isFirstRun) {
-                showWelcomePage();
+                // showWelcomePage();
             }
         }
     } catch (error) {

@@ -19,7 +19,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #001349 0%, #2c5aa0 100%);
             color: white;
             padding: 16px;
             text-align: center;
@@ -43,7 +43,7 @@
 
         .spinner {
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border-top: 3px solid #001349;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -84,7 +84,7 @@
 
         .form-control:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #001349;
         }
 
         .paper-info, .manual-form {
@@ -124,13 +124,13 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c5aa0 0%, #001349 100%);
             color: white;
         }
 
         .btn-primary:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
         }
 
         .btn-secondary {
@@ -148,21 +148,70 @@
             transform: none !important;
         }
 
-        .manual-form textarea,
-        .manual-form input {
+        .manual-form {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .manual-form-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .manual-form-header h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .manual-form-icon {
+            margin-right: 8px;
+            color: #2c5aa0;
+        }
+
+        .form-field {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .form-field input, .form-field textarea {
             width: 100%;
             padding: 10px 12px;
-            margin-bottom: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #e0e0e0;
             border-radius: 6px;
             font-size: 13px;
             box-sizing: border-box;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-field input:focus, .form-field textarea:focus {
+            outline: none;
+            border-color: #2c5aa0;
+            box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.1);
+        }
+
+        .form-field textarea {
+            height: 60px;
+            min-height: 60px;
             resize: vertical;
         }
 
-        .manual-form textarea {
-            height: 60px;
-            min-height: 60px;
+        .form-field.required label::after {
+            content: " *";
+            color: #e74c3c;
         }
 
         .success-message, .error-message {
@@ -192,7 +241,7 @@
         }
 
         .footer a {
-            color: #667eea;
+            color: #2c5aa0;
             text-decoration: none;
             font-size: 13px;
             font-weight: 500;
@@ -210,7 +259,7 @@
         }
 
         .login-links a {
-            color: #667eea;
+            color: #2c5aa0;
             text-decoration: none;
         }
 
@@ -219,14 +268,14 @@
         }
 
         .welcome-badge {
-            background: #e3f2fd;
-            color: #1976d2;
+            background: #e8f0fe;
+            color: #2c5aa0;
             padding: 8px 12px;
             border-radius: 6px;
             font-size: 12px;
             text-align: center;
             margin-bottom: 16px;
-            border: 1px solid #bbdefb;
+            border: 1px solid #c5d9f9;
         }
     </style>
 </head>
@@ -292,13 +341,37 @@
 
         <!-- Manual Form -->
         <div id="manual-form" class="content-section hidden">
-            <textarea id="manual-title" placeholder="Paper title *" required></textarea>
-            <textarea id="manual-authors" placeholder="Authors (comma separated)"></textarea>
-            <input type="text" id="manual-year" placeholder="Year published">
-            <input type="text" id="manual-venue" placeholder="Journal/Venue">
-            <div class="actions">
-                <button id="submit-manual" class="btn btn-primary">Submit Request</button>
-                <button id="cancel-manual" class="btn btn-secondary">Cancel</button>
+            <div class="manual-form">
+                <div class="manual-form-header">
+                    <svg class="manual-form-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 13H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 17H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 9H9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h4>Manual Paper Entry</h4>
+                </div>
+                <div class="form-field required">
+                    <label for="manual-title">Paper Title</label>
+                    <textarea id="manual-title" placeholder="Enter the full title of the paper" required></textarea>
+                </div>
+                <div class="form-field">
+                    <label for="manual-authors">Authors</label>
+                    <input type="text" id="manual-authors" placeholder="Comma separated list of authors">
+                </div>
+                <div class="form-field">
+                    <label for="manual-year">Year Published</label>
+                    <input type="text" id="manual-year" placeholder="Publication year">
+                </div>
+                <div class="form-field">
+                    <label for="manual-venue">Journal/Venue</label>
+                    <input type="text" id="manual-venue" placeholder="Journal, conference, or venue name">
+                </div>
+                <div class="actions">
+                    <button id="submit-manual" class="btn btn-primary">Submit Request</button>
+                    <button id="cancel-manual" class="btn btn-secondary">Cancel</button>
+                </div>
             </div>
         </div>
 
@@ -320,6 +393,7 @@
         </div>
     </div>
 
+    <!-- Reference external JavaScript file ONLY -->
     <script src="popup.js"></script>
 </body>
 </html>
