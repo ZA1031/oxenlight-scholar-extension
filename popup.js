@@ -30,6 +30,9 @@ async function initializeExtension() {
         userSession = await getUserSession();
         console.log('User session:', userSession);
 
+        // Update footer based on authentication state
+        updateFooterState();
+
         if (userSession && userSession.isAuthenticated) {
             // User is logged in, proceed to extract paper info
             await extractPaperInfo();
@@ -48,7 +51,18 @@ async function initializeExtension() {
         showLoginForm();
     }
 }
+function updateFooterState() {
+    const authenticatedLinks = document.getElementById('authenticated-links');
+    const unauthenticatedLinks = document.getElementById('unauthenticated-links');
 
+    if (userSession && userSession.isAuthenticated) {
+        authenticatedLinks.classList.remove('hidden');
+        unauthenticatedLinks.classList.add('hidden');
+    } else {
+        authenticatedLinks.classList.add('hidden');
+        unauthenticatedLinks.classList.remove('hidden');
+    }
+}
 async function checkFirstRun() {
     return new Promise((resolve) => {
         chrome.storage.local.get(['firstRunCompleted'], (result) => {
@@ -197,7 +211,6 @@ function setupEventListeners() {
     // Login form
     document.getElementById('login-btn').addEventListener('click', handleLogin);
     document.getElementById('forgot-password').addEventListener('click', handleForgotPassword);
-    document.getElementById('open-welcome').addEventListener('click', showWelcomePage);
 
     // Paper actions
     document.getElementById('request-btn').addEventListener('click', requestPaper);
@@ -217,9 +230,36 @@ function setupEventListeners() {
         }
     });
 
-    // Footer actions
-    document.getElementById('open-dashboard').addEventListener('click', openDashboard);
-    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    // Footer actions - Use event delegation for dynamically shown elements
+    document.addEventListener('click', function (e) {
+        // Open Dashboard
+        if (e.target.id === 'open-dashboard') {
+            e.preventDefault();
+            openDashboard();
+        }
+        // Logout
+        if (e.target.id === 'logout-btn') {
+            e.preventDefault();
+            handleLogout();
+        }
+        // Learn More
+        if (e.target.id === 'learn-more') {
+            e.preventDefault();
+            showWelcomePage();
+        }
+    });
+
+    // Error actions
+    document.getElementById('back-to-login').addEventListener('click', () => {
+        showLoginForm();
+    });
+    document.getElementById('back-to-paper').addEventListener('click', () => {
+        if (currentPaperData) {
+            paperInfoEl.classList.remove('hidden');
+        } else {
+            showManualForm();
+        }
+    });
 
     // Enter key support for login
     document.getElementById('password').addEventListener('keypress', (e) => {
@@ -253,6 +293,9 @@ async function handleLogin() {
         if (loginSuccess) {
             // Store platform URL for future use
             await saveToStorage('platformUrl', platformUrl);
+
+            // Update footer state
+            updateFooterState();
 
             // Proceed to extract paper info
             await extractPaperInfo();
@@ -426,6 +469,9 @@ async function handleLogout() {
         currentPaperData = null;
         extractedPaperTitle = null;
 
+        // Update footer state
+        updateFooterState();
+
         showLoginForm();
     } catch (error) {
         console.error('Logout error:', error);
@@ -441,9 +487,12 @@ function handleForgotPassword(e) {
     });
 }
 
-function openDashboard(e) {
-    e.preventDefault();
-    if (userSession && userSession.platformUrl) {
+function openDashboard(e = null) {
+    if (e) {
+        e.preventDefault();
+    }
+
+    if (userSession && userSession.isAuthenticated && userSession.platformUrl) {
         chrome.tabs.create({
             url: `${userSession.platformUrl}/backend/oxenlight_scholar`
         });
@@ -598,9 +647,30 @@ function showSuccess() {
     }, 2000);
 }
 
-function showError(message) {
+function showError(message, showBackButton = false) {
     hideAllSections();
     document.getElementById('error-text').textContent = message;
+
+    const errorActions = document.querySelector('.error-actions');
+    const backToLoginBtn = document.getElementById('back-to-login');
+    const backToPaperBtn = document.getElementById('back-to-paper');
+
+    // Show/hide action buttons based on context
+    if (message.includes('Please login first') || !userSession || !userSession.isAuthenticated) {
+        backToLoginBtn.style.display = 'block';
+        backToPaperBtn.style.display = 'none';
+        backToLoginBtn.textContent = 'Login';
+    } else if (showBackButton) {
+        backToLoginBtn.style.display = 'none';
+        backToPaperBtn.style.display = 'block';
+        backToPaperBtn.textContent = 'Back';
+    } else {
+        backToLoginBtn.style.display = 'block';
+        backToPaperBtn.style.display = 'block';
+        backToLoginBtn.textContent = 'Login';
+        backToPaperBtn.textContent = 'Back';
+    }
+
     errorEl.classList.remove('hidden');
 }
 

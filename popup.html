@@ -15,7 +15,7 @@
             <div class="welcome-badge">
                 Welcome! Please login to continue
             </div>
-            <div class="form-group">
+            <div class="form-group platform-url">
                 <label for="platform-url">Platform URL</label>
                 <input type="url" id="platform-url" class="form-control" 
                        placeholder="https://sitename.com" required disabled>
@@ -37,7 +37,6 @@
             </div>
             <div class="login-links">
                 <a href="#" id="forgot-password">Forgot password?</a>
-                <a href="#" id="open-welcome">View Welcome Guide</a>
             </div>
         </div>
 
@@ -147,13 +146,25 @@
         <!-- Error Message -->
         <div id="error-message" class="error-message hidden">
             <p id="error-text"></p>
+            <div class="error-actions">
+                <button id="back-to-login" class="btn btn-primary">Login</button>
+                <button id="back-to-paper" class="btn btn-secondary">Back</button>
+            </div>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <a href="#" id="open-dashboard">Open Dashboard</a>
-            <span style="margin: 0 8px; color: #ddd;">•</span>
-            <a href="#" id="logout-btn">Logout</a>
+            <!-- Authenticated User Links -->
+            <div id="authenticated-links" class="hidden">
+                <a href="#" id="open-dashboard">Open Dashboard</a>
+                <span style="margin: 0 8px; color: #ddd;">•</span>
+                <a href="#" id="logout-btn">Logout</a>
+            </div>
+            
+            <!-- Unauthenticated User Links -->
+            <div id="unauthenticated-links">
+                <a href="#" id="learn-more">Learn More</a>
+            </div>
         </div>
     </div>
 

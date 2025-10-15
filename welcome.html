@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,33 +13,35 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2b 0%, #2b2b40 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            color: #333;
         }
 
         .container {
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(43, 43, 64, 0.2);
             max-width: 800px;
             width: 100%;
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a2b 0%, #2b2b40 100%);
             color: white;
             padding: 40px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 32px;
+            font-size: 28px;
             margin-bottom: 10px;
+            font-weight: 600;
         }
 
         .header p {
@@ -49,64 +50,77 @@
         }
 
         .content {
-            padding: 40px;
+            padding: 30px;
         }
 
         .feature {
             display: flex;
             align-items: start;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            background: #f8f9fa;
         }
 
         .feature-icon {
-            font-size: 40px;
-            margin-right: 20px;
-            min-width: 60px;
+            font-size: 24px;
+            margin-right: 15px;
+            min-width: 40px;
             text-align: center;
+            color: #2b2b40;
         }
 
         .feature-content h3 {
-            font-size: 20px;
-            color: #333;
+            font-size: 18px;
+            color: #2b2b40;
             margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .feature-content p {
             color: #666;
             line-height: 1.6;
+            font-size: 14px;
         }
 
         .steps {
             background: #f8f9fa;
-            border-radius: 12px;
-            padding: 30px;
-            margin: 30px 0;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid #e0e0e0;
         }
 
         .steps h2 {
-            font-size: 24px;
-            color: #333;
+            font-size: 20px;
+            color: #2b2b40;
             margin-bottom: 20px;
+            font-weight: 600;
         }
 
         .step {
             display: flex;
             align-items: start;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .step-number {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2b2b40;
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 600;
             margin-right: 15px;
             flex-shrink: 0;
+            font-size: 14px;
         }
 
         .step-content {
@@ -114,9 +128,10 @@
         }
 
         .step-content h4 {
-            font-size: 16px;
-            color: #333;
+            font-size: 15px;
+            color: #2b2b40;
             margin-bottom: 5px;
+            font-weight: 600;
         }
 
         .step-content p {
@@ -127,56 +142,79 @@
 
         .cta {
             text-align: center;
-            padding: 20px 0;
+            padding: 20px 0 10px;
         }
 
         .btn {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2b2b40;
             color: white;
-            padding: 15px 40px;
-            border-radius: 30px;
+            padding: 12px 30px;
+            border-radius: 6px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.3s;
             border: none;
             cursor: pointer;
         }
 
         .btn:hover {
+            background: #1a1a2b;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(43, 43, 64, 0.3);
         }
 
         .supported-sites {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
         }
 
         .supported-sites h3 {
-            font-size: 18px;
-            color: #333;
+            font-size: 16px;
+            color: #2b2b40;
             margin-bottom: 15px;
             text-align: center;
+            font-weight: 600;
         }
 
         .sites-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
             margin-top: 15px;
         }
 
         .site-badge {
             background: #f0f0f0;
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             color: #555;
             font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .site-badge:hover {
+            background: #e8f0fe;
+            color: #2b2b40;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .logo {
+            font-size: 24px;
+            margin-bottom: 10px;
+            background-image: url("icons/icon128.png");
         }
     </style>
 </head>
@@ -184,7 +222,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎓 Welcome to OXenLight Scholar</h1>
+            <div class="logo" ></div>
+            <h1>Welcome to OXenLight Scholar</h1>
             <p>Request academic papers with one click, directly from journal websites</p>
         </div>
 
@@ -193,8 +232,7 @@
                 <div class="feature-icon">⚡</div>
                 <div class="feature-content">
                     <h3>Lightning Fast</h3>
-                    <p>No more copying and pasting paper details. Our extension automatically extracts all the
-                        information you need.</p>
+                    <p>No more copying and pasting paper details. Our extension automatically extracts all the information you need.</p>
                 </div>
             </div>
 
@@ -202,8 +240,7 @@
                 <div class="feature-icon">🔍</div>
                 <div class="feature-content">
                     <h3>Smart Detection</h3>
-                    <p>Works on 10+ major academic platforms including IEEE, Springer, Nature, ScienceDirect, and more.
-                    </p>
+                    <p>Works on 10+ major academic platforms including IEEE, Springer, Nature, ScienceDirect, and more.</p>
                 </div>
             </div>
 
@@ -211,8 +248,7 @@
                 <div class="feature-icon">🔒</div>
                 <div class="feature-content">
                     <h3>Secure & Private</h3>
-                    <p>Your credentials are safely stored and all communication is encrypted. Student-only access
-                        ensures security.</p>
+                    <p>Your credentials are safely stored and all communication is encrypted. Student-only access ensures security.</p>
                 </div>
             </div>
 
@@ -223,8 +259,7 @@
                     <div class="step-number">1</div>
                     <div class="step-content">
                         <h4>Pin the Extension</h4>
-                        <p>Click the puzzle icon (🧩) in your Chrome toolbar, find OXenLight Scholar, and click the pin
-                            icon to keep it visible.</p>
+                        <p>Click the puzzle icon (🧩) in your Chrome toolbar, find OXenLight Scholar, and click the pin icon to keep it visible.</p>
                     </div>
                 </div>
 
@@ -232,8 +267,7 @@
                     <div class="step-number">2</div>
                     <div class="step-content">
                         <h4>Login with Your Student Account</h4>
-                        <p>Click the extension icon and enter your OXenLight Scholar student credentials to
-                            authenticate.</p>
+                        <p>Click the extension icon and enter your OXenLight Scholar student credentials to authenticate.</p>
                     </div>
                 </div>
 
@@ -241,8 +275,7 @@
                     <div class="step-number">3</div>
                     <div class="step-content">
                         <h4>Browse and Request</h4>
-                        <p>Navigate to any academic paper online, click the extension, and request it with one click!
-                        </p>
+                        <p>Navigate to any academic paper online, click the extension, and request it with one click!</p>
                     </div>
                 </div>
 
@@ -250,8 +283,7 @@
                     <div class="step-number">4</div>
                     <div class="step-content">
                         <h4>Check Your Platform</h4>
-                        <p>Your requested paper will appear in the "Requested Papers" tab on the OXenLight Scholar
-                            platform for review.</p>
+                        <p>Your requested paper will appear in the "Requested Papers" tab on the OXenLight Scholar platform for review.</p>
                     </div>
                 </div>
             </div>
@@ -276,8 +308,11 @@
             <div class="cta">
                 <button class="btn" onclick="window.close()">Get Started</button>
             </div>
+            
+            <div class="footer">
+                <p>OXenLight Scholar Extension v1.0</p>
+            </div>
         </div>
     </div>
 </body>
-
 </html>

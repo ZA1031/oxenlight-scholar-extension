@@ -484,3 +484,29 @@ body {
         align-self: flex-start;
     }
 }
+
+/* Error Actions */
+.error-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+.error-actions .btn {
+    flex: 0 1 auto;
+    min-width: 80px;
+    padding: 6px 12px;
+}
+
+/* Footer Links */
+#authenticated-links,
+#unauthenticated-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.platform-url {
+    display: none;
+}
