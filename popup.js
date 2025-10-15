@@ -179,13 +179,87 @@ async function fetchPaperMetadata(paperTitle) {
 }
 
 function displayPaperInfo(paperData) {
+    // Set all the metadata fields
     document.getElementById('paper-title').textContent = paperData.title || 'Unknown Title';
-    document.getElementById('paper-authors').textContent = paperData.authors || 'Authors not available';
-    document.getElementById('paper-venue').textContent = paperData.venue || 'Venue not available';
-    document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Year not available';
+    document.getElementById('paper-authors').textContent = paperData.authors || 'Not available';
+    document.getElementById('paper-venue').textContent = paperData.venue || 'Not available';
+    document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Not available';
+    document.getElementById('paper-citations').textContent = paperData.citations ? `${paperData.citations} citations` : 'No citations';
+    document.getElementById('paper-type').textContent = paperData.type || 'Article';
+
+    // Set paper link
+    const paperLink = document.getElementById('paper-link');
+    if (paperData.link && paperData.link !== '#') {
+        paperLink.href = paperData.link;
+        paperLink.textContent = 'View original paper';
+        paperLink.style.color = '';
+        paperLink.style.pointerEvents = '';
+    } else {
+        paperLink.href = '#';
+        paperLink.textContent = 'No source available';
+        paperLink.style.color = '#999';
+        paperLink.style.pointerEvents = 'none';
+    }
+
+    // Show peer reviewed badge if applicable
+    const peerReviewedBadge = document.getElementById('peer-reviewed-badge');
+    if (paperData.peer_reviewed) {
+        peerReviewedBadge.classList.remove('hidden');
+    } else {
+        peerReviewedBadge.classList.add('hidden');
+    }
+
+    // Handle read more functionality for long summaries
+    const summaryElement = document.getElementById('paper-summary');
+    const readMoreBtn = document.getElementById('read-more-btn');
+
+    // Reset summary element
+    summaryElement.classList.remove('expanded');
+    summaryElement.style.maxHeight = '';
+    summaryElement.style.overflow = '';
+
+    if (paperData.summary && paperData.summary.length > 200) {
+        // Truncate summary initially
+        summaryElement.textContent = paperData.summary.substring(0, 200) + '...';
+        readMoreBtn.classList.remove('hidden');
+
+        // Remove any existing event listeners and add new one
+        readMoreBtn.replaceWith(readMoreBtn.cloneNode(true));
+        const newReadMoreBtn = document.getElementById('read-more-btn');
+
+        newReadMoreBtn.addEventListener('click', function () {
+            if (summaryElement.classList.contains('expanded')) {
+                // Collapse
+                summaryElement.textContent = paperData.summary.substring(0, 200) + '...';
+                summaryElement.classList.remove('expanded');
+                newReadMoreBtn.textContent = 'Read more';
+            } else {
+                // Expand
+                summaryElement.textContent = paperData.summary;
+                summaryElement.classList.add('expanded');
+                newReadMoreBtn.textContent = 'Read less';
+            }
+        });
+
+        newReadMoreBtn.textContent = 'Read more';
+    } else {
+        // Show full summary if short
+        summaryElement.textContent = paperData.summary || 'No summary available';
+        readMoreBtn.classList.add('hidden');
+    }
 
     // Store paper data for later use
-    currentPaperData = paperData;
+    currentPaperData = {
+        title: paperData.title,
+        link: paperData.link || '',
+        authors: paperData.authors || '',
+        year_published: paperData.year_published || paperData.year || '',
+        type: paperData.type || 'Article',
+        summary: paperData.summary || '',
+        venue: paperData.venue || '',
+        citations: paperData.citations || 0,
+        peer_reviewed: paperData.peer_reviewed || 0
+    };
 
     hideAllSections();
     paperInfoEl.classList.remove('hidden');
@@ -221,12 +295,18 @@ function setupEventListeners() {
 
     // Manual form
     document.getElementById('submit-manual').addEventListener('click', submitManualRequest);
+    
     document.getElementById('cancel-manual').addEventListener('click', () => {
         manualFormEl.classList.add('hidden');
         if (currentPaperData) {
             paperInfoEl.classList.remove('hidden');
         } else {
-            showManualForm();
+            // If no paper data, go back to extraction or login
+            if (userSession && userSession.isAuthenticated) {
+                extractPaperInfo();
+            } else {
+                showLoginForm();
+            }
         }
     });
 
@@ -251,9 +331,12 @@ function setupEventListeners() {
 
     // Error actions
     document.getElementById('back-to-login').addEventListener('click', () => {
+        errorEl.classList.add('hidden');
         showLoginForm();
     });
+
     document.getElementById('back-to-paper').addEventListener('click', () => {
+        errorEl.classList.add('hidden'); // Clear error state first
         if (currentPaperData) {
             paperInfoEl.classList.remove('hidden');
         } else {
@@ -646,7 +729,6 @@ function showSuccess() {
         window.close();
     }, 2000);
 }
-
 function showError(message, showButtons = true) {
     hideAllSections();
     document.getElementById('error-text').textContent = message;
