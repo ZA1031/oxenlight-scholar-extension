@@ -25,18 +25,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function initializeExtension() {
     try {
         console.log('Initializing extension...');
-        
+
         // Check if user is already authenticated
         userSession = await getUserSession();
         console.log('User session:', userSession);
-        
+
         if (userSession && userSession.isAuthenticated) {
             // User is logged in, proceed to extract paper info
             await extractPaperInfo();
         } else {
             // Show login form
             showLoginForm();
-            
+
             // Check if this is first install and show welcome page
             const isFirstRun = await checkFirstRun();
             if (isFirstRun) {
@@ -72,7 +72,7 @@ function showWelcomePage() {
 function showLoginForm() {
     hideAllSections();
     loginFormEl.classList.remove('hidden');
-    
+
     // Auto-fill platform URL
     document.getElementById('platform-url').value = CONFIG.DEFAULT_API_URL;
 }
@@ -80,21 +80,21 @@ function showLoginForm() {
 async function extractPaperInfo() {
     try {
         showLoading('Analyzing page for paper information...');
-        
+
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        
+
         if (!tab) {
             throw new Error('No active tab found');
         }
-        
+
         // Inject content script to extract paper data
         const results = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             function: extractPaperDataFromPage
         });
-        
+
         const paperData = results[0]?.result;
-        
+
         if (paperData && paperData.title) {
             extractedPaperTitle = paperData.title;
             await fetchPaperMetadata(paperData.title);
@@ -110,13 +110,13 @@ async function extractPaperInfo() {
 async function fetchPaperMetadata(paperTitle) {
     try {
         showLoading('Fetching paper metadata from database...');
-        
+
         const apiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/auto_fill_paper_details`;
         console.log('Fetching metadata from:', apiUrl);
-        
+
         const formData = new URLSearchParams();
         formData.append('paper_title', paperTitle);
-        
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -125,16 +125,16 @@ async function fetchPaperMetadata(paperTitle) {
             body: formData,
             credentials: 'include'
         });
-        
+
         console.log('Metadata API response status:', response.status);
-        
+
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
         }
-        
+
         const result = await response.json();
         console.log('Metadata API result:', result);
-        
+
         if (result.status === 'success' && result.data && result.data.length > 0) {
             // Use the best matching paper (first result after sorting by similarity)
             const bestMatch = result.data[0];
@@ -169,10 +169,10 @@ function displayPaperInfo(paperData) {
     document.getElementById('paper-authors').textContent = paperData.authors || 'Authors not available';
     document.getElementById('paper-venue').textContent = paperData.venue || 'Venue not available';
     document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Year not available';
-    
+
     // Store paper data for later use
     currentPaperData = paperData;
-    
+
     hideAllSections();
     paperInfoEl.classList.remove('hidden');
 }
@@ -180,7 +180,7 @@ function displayPaperInfo(paperData) {
 function showManualForm() {
     hideAllSections();
     manualFormEl.classList.remove('hidden');
-    
+
     // If we have an extracted title, pre-fill it
     if (extractedPaperTitle) {
         document.getElementById('manual-title').value = extractedPaperTitle;
@@ -198,14 +198,14 @@ function setupEventListeners() {
     document.getElementById('login-btn').addEventListener('click', handleLogin);
     document.getElementById('forgot-password').addEventListener('click', handleForgotPassword);
     document.getElementById('open-welcome').addEventListener('click', showWelcomePage);
-    
+
     // Paper actions
     document.getElementById('request-btn').addEventListener('click', requestPaper);
     document.getElementById('manual-btn').addEventListener('click', () => {
         paperInfoEl.classList.add('hidden');
         manualFormEl.classList.remove('hidden');
     });
-    
+
     // Manual form
     document.getElementById('submit-manual').addEventListener('click', submitManualRequest);
     document.getElementById('cancel-manual').addEventListener('click', () => {
@@ -216,11 +216,11 @@ function setupEventListeners() {
             showManualForm();
         }
     });
-    
+
     // Footer actions
     document.getElementById('open-dashboard').addEventListener('click', openDashboard);
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
-    
+
     // Enter key support for login
     document.getElementById('password').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -233,27 +233,27 @@ async function handleLogin() {
     const platformUrl = document.getElementById('platform-url').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
-    
+
     // Basic validation
     if (!platformUrl || !email || !password) {
         showError('Please fill in all fields');
         return;
     }
-    
+
     if (!isValidUrl(platformUrl)) {
         showError('Please enter a valid platform URL');
         return;
     }
-    
+
     try {
         showLoading('Logging in...');
-        
+
         const loginSuccess = await performLogin(platformUrl, email, password);
-        
+
         if (loginSuccess) {
             // Store platform URL for future use
             await saveToStorage('platformUrl', platformUrl);
-            
+
             // Proceed to extract paper info
             await extractPaperInfo();
         } else {
@@ -268,15 +268,15 @@ async function handleLogin() {
 async function performLogin(platformUrl, email, password) {
     // Your login API endpoint
     const loginUrl = `${platformUrl}/login/validate_login`;
-    
+
     try {
         console.log('Attempting login to:', loginUrl);
-        
+
         // Create form data exactly like your web form
         const formData = new URLSearchParams();
         formData.append('email', email);
         formData.append('password', password);
-        
+
         const response = await fetch(loginUrl, {
             method: 'POST',
             headers: {
@@ -285,12 +285,12 @@ async function performLogin(platformUrl, email, password) {
             body: formData,
             credentials: 'include' // Important for session cookies
         });
-        
+
         console.log('Login response status:', response.status);
-        
+
         // For your current setup, we'll check if we can access a protected page
         const canAccessScholar = await checkScholarAccess(platformUrl);
-        
+
         if (canAccessScholar) {
             // Store user session
             userSession = {
@@ -302,7 +302,7 @@ async function performLogin(platformUrl, email, password) {
                 platformUrl: platformUrl,
                 timestamp: Date.now()
             };
-            
+
             await saveUserSession(userSession);
             return true;
         } else {
@@ -318,14 +318,14 @@ async function checkScholarAccess(platformUrl) {
     try {
         const scholarUrl = `${platformUrl}/backend/oxenlight_scholar`;
         console.log('Checking scholar access:', scholarUrl);
-        
+
         const response = await fetch(scholarUrl, {
             credentials: 'include',
             redirect: 'manual'
         });
-        
+
         console.log('Scholar access check status:', response.status);
-        
+
         // If we get a 200, we're logged in. If we get a redirect (302), we're not logged in
         return response.status === 200;
     } catch (error) {
@@ -339,18 +339,18 @@ async function requestPaper() {
         showError('No paper data available');
         return;
     }
-    
+
     await submitPaperRequest(currentPaperData);
 }
 
 async function submitManualRequest() {
     const title = document.getElementById('manual-title').value.trim();
-    
+
     if (!title) {
         showError('Paper title is required');
         return;
     }
-    
+
     const paperData = {
         title: title,
         authors: document.getElementById('manual-authors').value.trim(),
@@ -362,14 +362,14 @@ async function submitManualRequest() {
         citations: 0,
         peer_reviewed: 0
     };
-    
+
     await submitPaperRequest(paperData);
 }
 
 async function submitPaperRequest(paperData) {
     try {
         showLoading('Submitting paper request...');
-        
+
         const requestData = {
             name: paperData.title,
             paper_link: paperData.link || '',
@@ -381,10 +381,10 @@ async function submitPaperRequest(paperData) {
             citations: paperData.citations || 0,
             peer_reviewed: paperData.peer_reviewed || 0
         };
-        
+
         const apiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/create`;
         console.log('Submitting paper to:', apiUrl);
-        
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
@@ -393,12 +393,12 @@ async function submitPaperRequest(paperData) {
             body: new URLSearchParams(requestData),
             credentials: 'include'
         });
-        
+
         console.log('Paper submission response status:', response.status);
-        
+
         // Handle response - your create function returns JSON
         const result = await response.json();
-        
+
         if (result.status === 'success') {
             showSuccess();
         } else {
@@ -419,13 +419,13 @@ async function handleLogout() {
                 credentials: 'include'
             });
         }
-        
+
         // Clear local storage
         await clearStorage();
         userSession = null;
         currentPaperData = null;
         extractedPaperTitle = null;
-        
+
         showLoginForm();
     } catch (error) {
         console.error('Logout error:', error);
@@ -456,19 +456,19 @@ function openDashboard(e) {
 function extractPaperDataFromPage() {
     const paperData = {};
     const hostname = window.location.hostname;
-    
+
     console.log('Extracting paper data from:', hostname);
-    
+
     // ScienceDirect
     if (hostname.includes('sciencedirect')) {
         paperData.title = document.querySelector('.title-text')?.textContent?.trim() ||
-                         document.querySelector('h1')?.textContent?.trim();
-        
+            document.querySelector('h1')?.textContent?.trim();
+
         paperData.authors = Array.from(document.querySelectorAll('.author span'))
             .map(el => el.textContent?.trim())
             .filter(Boolean)
             .join(', ');
-            
+
         paperData.venue = document.querySelector('.publication-title')?.textContent?.trim();
         paperData.year = document.querySelector('.publication-volume')?.textContent?.match(/\d{4}/)?.[0];
     }
@@ -493,7 +493,7 @@ function extractPaperDataFromPage() {
     // ACM Digital Library
     else if (hostname.includes('acm.org')) {
         paperData.title = document.querySelector('.citation__title')?.textContent?.trim() ||
-                         document.querySelector('h1')?.textContent?.trim();
+            document.querySelector('h1')?.textContent?.trim();
         paperData.authors = Array.from(document.querySelectorAll('.loa__item-name'))
             .map(el => el.textContent?.trim())
             .join(', ');
@@ -503,7 +503,7 @@ function extractPaperDataFromPage() {
     // arXiv
     else if (hostname.includes('arxiv.org')) {
         paperData.title = document.querySelector('.title math')?.textContent?.trim() ||
-                         document.querySelector('.title')?.textContent?.replace('Title:', '').trim();
+            document.querySelector('.title')?.textContent?.replace('Title:', '').trim();
         paperData.authors = Array.from(document.querySelectorAll('.authors a'))
             .map(el => el.textContent?.trim())
             .join(', ');
@@ -518,11 +518,11 @@ function extractPaperDataFromPage() {
         const citationJournal = document.querySelector('meta[name="citation_journal_title"]')?.content;
         const citationDate = document.querySelector('meta[name="citation_publication_date"]')?.content;
         const citationYear = document.querySelector('meta[name="citation_year"]')?.content;
-        
+
         paperData.title = citationTitle ||
-                         document.querySelector('meta[property="og:title"]')?.content ||
-                         document.title;
-        
+            document.querySelector('meta[property="og:title"]')?.content ||
+            document.title;
+
         if (citationAuthors.length > 0) {
             paperData.authors = Array.from(citationAuthors)
                 .map(meta => meta.content)
@@ -530,13 +530,13 @@ function extractPaperDataFromPage() {
         } else {
             paperData.authors = document.querySelector('meta[name="author"]')?.content || 'Not available';
         }
-        
+
         paperData.venue = citationJournal || 'Not available';
         paperData.year = citationYear || citationDate?.match(/\d{4}/)?.[0] || 'Not available';
     }
-    
+
     paperData.link = window.location.href;
-    
+
     console.log('Extracted paper data:', paperData);
     return paperData;
 }
@@ -591,7 +591,7 @@ function isValidUrl(string) {
 function showSuccess() {
     hideAllSections();
     successEl.classList.remove('hidden');
-    
+
     // Auto-close after 2 seconds
     setTimeout(() => {
         window.close();
@@ -608,4 +608,65 @@ function hideAllSections() {
     [loginFormEl, loadingEl, paperInfoEl, manualFormEl, successEl, errorEl].forEach(el => {
         el.classList.add('hidden');
     });
+}
+
+function displayPaperInfo(paperData) {
+    // Set all the metadata fields
+    document.getElementById('paper-title').textContent = paperData.title || 'Unknown Title';
+    document.getElementById('paper-authors').textContent = paperData.authors || 'Not available';
+    document.getElementById('paper-venue').textContent = paperData.venue || 'Not available';
+    document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Not available';
+    document.getElementById('paper-citations').textContent = paperData.citations ? `${paperData.citations} citations` : 'No citations';
+    document.getElementById('paper-type').textContent = paperData.type || 'Article';
+    document.getElementById('paper-summary').textContent = paperData.summary || 'No summary available';
+
+    // Set paper link
+    const paperLink = document.getElementById('paper-link');
+    if (paperData.link && paperData.link !== '#') {
+        paperLink.href = paperData.link;
+        paperLink.textContent = 'View original paper';
+    } else {
+        paperLink.href = '#';
+        paperLink.textContent = 'No source available';
+        paperLink.style.color = '#999';
+        paperLink.style.pointerEvents = 'none';
+    }
+
+    // Show peer reviewed badge if applicable
+    const peerReviewedBadge = document.getElementById('peer-reviewed-badge');
+    if (paperData.peer_reviewed) {
+        peerReviewedBadge.classList.remove('hidden');
+    } else {
+        peerReviewedBadge.classList.add('hidden');
+    }
+
+    // Handle read more functionality for long summaries
+    const summaryElement = document.getElementById('paper-summary');
+    const readMoreBtn = document.getElementById('read-more-btn');
+
+    if (paperData.summary && paperData.summary.length > 200) {
+        readMoreBtn.classList.remove('hidden');
+        readMoreBtn.addEventListener('click', function () {
+            summaryElement.classList.toggle('expanded');
+            readMoreBtn.textContent = summaryElement.classList.contains('expanded') ? 'Read less' : 'Read more';
+        });
+    } else {
+        readMoreBtn.classList.add('hidden');
+    }
+
+    // Store paper data for later use - ensure all fields are properly set
+    currentPaperData = {
+        title: paperData.title,
+        link: paperData.link || '',
+        authors: paperData.authors || '',
+        year_published: paperData.year_published || paperData.year || '',
+        type: paperData.type || 'Article',
+        summary: paperData.summary || '',
+        venue: paperData.venue || '',
+        citations: paperData.citations || 0,
+        peer_reviewed: paperData.peer_reviewed || 0
+    };
+
+    hideAllSections();
+    paperInfoEl.classList.remove('hidden');
 }

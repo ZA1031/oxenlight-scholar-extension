@@ -49,10 +49,49 @@
 
         <!-- Paper Info -->
         <div id="paper-info" class="content-section hidden">
-            <div class="paper-title" id="paper-title"></div>
-            <div class="paper-authors" id="paper-authors"></div>
-            <div class="paper-venue" id="paper-venue"></div>
-            <div class="paper-year" id="paper-year"></div>
+            <div class="paper-card">
+                <div class="paper-header">
+                    <h3 class="paper-title" id="paper-title"></h3>
+                    <div class="paper-badges">
+                        <span class="paper-type-badge" id="paper-type"></span>
+                        <span class="peer-reviewed-badge hidden" id="peer-reviewed-badge">Peer Reviewed</span>
+                    </div>
+                </div>
+                
+                <div class="paper-meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-label">Authors</span>
+                        <span class="meta-value" id="paper-authors"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Year</span>
+                        <span class="meta-value" id="paper-year"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Venue</span>
+                        <span class="meta-value" id="paper-venue"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Citations</span>
+                        <span class="meta-value" id="paper-citations"></span>
+                    </div>
+                </div>
+
+                <div class="paper-summary">
+                    <div class="summary-header">
+                        <span class="meta-label">Summary</span>
+                    </div>
+                    <div class="summary-content">
+                        <p id="paper-summary"></p>
+                        <button class="read-more-btn hidden" id="read-more-btn">Read more</button>
+                    </div>
+                </div>
+
+                <div class="paper-link">
+                    <span class="meta-label">Source</span>
+                    <a href="#" id="paper-link" class="source-link" target="_blank">View original paper</a>
+                </div>
+            </div>
 
             <div class="actions">
                 <button id="request-btn" class="btn btn-primary">
