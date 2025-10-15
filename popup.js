@@ -300,10 +300,10 @@ async function handleLogin() {
             // Proceed to extract paper info
             await extractPaperInfo();
         } else {
-            showError('Login failed. Please check your credentials.');
+            showError('Login failed. Please check your credentials.', true);
         }
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error, true);
         showError('Login failed. Please try again.');
     }
 }
@@ -647,7 +647,7 @@ function showSuccess() {
     }, 2000);
 }
 
-function showError(message, showBackButton = false) {
+function showError(message, showButtons = true) {
     hideAllSections();
     document.getElementById('error-text').textContent = message;
 
@@ -660,7 +660,7 @@ function showError(message, showBackButton = false) {
         backToLoginBtn.style.display = 'block';
         backToPaperBtn.style.display = 'none';
         backToLoginBtn.textContent = 'Login';
-    } else if (showBackButton) {
+    } else if (showButtons) {
         backToLoginBtn.style.display = 'none';
         backToPaperBtn.style.display = 'block';
         backToPaperBtn.textContent = 'Back';
@@ -670,7 +670,6 @@ function showError(message, showBackButton = false) {
         backToLoginBtn.textContent = 'Login';
         backToPaperBtn.textContent = 'Back';
     }
-
     errorEl.classList.remove('hidden');
 }
 

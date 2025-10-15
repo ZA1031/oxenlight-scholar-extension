@@ -269,7 +269,7 @@ function addExtensionIndicator() {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #001349 0%, #001329 100%);
         color: white;
         padding: 10px 15px;
         border-radius: 25px;
@@ -284,7 +284,7 @@ function addExtensionIndicator() {
         align-items: center;
         gap: 8px;
     `;
-    indicator.innerHTML = '🎓 OXenLight Scholar Active';
+    indicator.innerHTML = 'OXenLight Scholar Active';
 
     indicator.addEventListener('mouseenter', () => {
         indicator.style.transform = 'translateY(-2px)';
