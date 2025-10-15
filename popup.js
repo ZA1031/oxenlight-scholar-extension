@@ -374,7 +374,7 @@ async function submitPaperRequest(paperData) {
             name: paperData.title,
             paper_link: paperData.link || '',
             authors: paperData.authors || '',
-            year_published: paperData.year || '',
+            year_published: paperData.year_published || paperData.year || '',
             type: paperData.type || 'Article',
             summary: paperData.summary || '',
             venue: paperData.venue || '',
