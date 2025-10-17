@@ -295,7 +295,7 @@ function setupEventListeners() {
 
     // Manual form
     document.getElementById('submit-manual').addEventListener('click', submitManualRequest);
-    
+
     document.getElementById('cancel-manual').addEventListener('click', () => {
         manualFormEl.classList.add('hidden');
         if (currentPaperData) {
@@ -494,7 +494,9 @@ async function submitManualRequest() {
 
 async function submitPaperRequest(paperData) {
     try {
-        showLoading('Submitting paper request...');
+        showLoading('Checking for duplicates...');
+
+        const peerReviewedValue = paperData.peer_reviewed === true ? 1 : 0;
 
         const requestData = {
             name: paperData.title,
@@ -505,13 +507,48 @@ async function submitPaperRequest(paperData) {
             summary: paperData.summary || '',
             venue: paperData.venue || '',
             citations: paperData.citations || 0,
-            peer_reviewed: paperData.peer_reviewed || 0
+            peer_reviewed: peerReviewedValue,
+            is_extension: true
         };
 
-        const apiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/create`;
-        console.log('Submitting paper to:', apiUrl);
+        console.log('Submitting paper data:', requestData);
 
-        const response = await fetch(apiUrl, {
+        // Step 1: Check if paper already exists in library
+        const checkApiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/check_paper_in_library`;
+        console.log('Checking duplicates at:', checkApiUrl);
+
+        const checkResponse = await fetch(checkApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                paper_title: paperData.title
+            }),
+            credentials: 'include'
+        });
+
+        console.log('Duplicate check response status:', checkResponse.status);
+
+        if (!checkResponse.ok) {
+            throw new Error(`Duplicate check failed with status ${checkResponse.status}`);
+        }
+
+        const checkResult = await checkResponse.json();
+        console.log('Duplicate check result:', checkResult);
+
+        if (checkResult.exists) {
+            showError('This paper already exists in the library!');
+            return;
+        }
+
+        // Step 2: If no duplicate, proceed with submission
+        showLoading('Submitting paper request...');
+
+        const createApiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/create`;
+        console.log('Submitting paper to:', createApiUrl);
+
+        const response = await fetch(createApiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -522,11 +559,10 @@ async function submitPaperRequest(paperData) {
 
         console.log('Paper submission response status:', response.status);
 
-        // Handle response - your create function returns JSON
         const result = await response.json();
 
         if (result.status === 'success') {
-            showSuccess();
+            showSuccess('Paper requested successfully! It will be reviewed by your mentor.');
         } else {
             showError(result.message || 'Failed to request paper');
         }
@@ -535,7 +571,6 @@ async function submitPaperRequest(paperData) {
         showError('Network error. Please try again.');
     }
 }
-
 async function handleLogout() {
     try {
         if (userSession && userSession.platformUrl) {
@@ -731,7 +766,18 @@ function showSuccess() {
 }
 function showError(message, showButtons = true) {
     hideAllSections();
-    document.getElementById('error-text').textContent = message;
+
+    // Special styling for duplicate papers
+    const errorText = document.getElementById('error-text');
+    errorText.textContent = message;
+
+    if (message.includes('already exists')) {
+        errorText.style.color = '#d63031'; // Red color for duplicates
+        errorText.style.fontWeight = 'bold';
+    } else {
+        errorText.style.color = ''; // Reset to default
+        errorText.style.fontWeight = '';
+    }
 
     const errorActions = document.querySelector('.error-actions');
     const backToLoginBtn = document.getElementById('back-to-login');
@@ -754,7 +800,6 @@ function showError(message, showButtons = true) {
     }
     errorEl.classList.remove('hidden');
 }
-
 function hideAllSections() {
     [loginFormEl, loadingEl, paperInfoEl, manualFormEl, successEl, errorEl].forEach(el => {
         el.classList.add('hidden');
