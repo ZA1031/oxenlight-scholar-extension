@@ -40,6 +40,9 @@ async function initializeExtension() {
             // Show login form
             showLoginForm();
 
+            // Load remembered credentials if available
+            await loadRememberedCredentials();
+
             // Check if this is first install and show welcome page
             const isFirstRun = await checkFirstRun();
             if (isFirstRun) {
@@ -49,6 +52,18 @@ async function initializeExtension() {
     } catch (error) {
         console.error('Initialization error:', error);
         showLoginForm();
+    }
+}
+async function loadRememberedCredentials() {
+    const credentials = await getRememberedCredentials();
+    
+    if (credentials) {
+        // Auto-fill the form
+        document.getElementById('email').value = credentials.email;
+        document.getElementById('password').value = credentials.password;
+        document.getElementById('remember-me').checked = true;
+        
+        console.log('Loaded remembered credentials for:', credentials.email);
     }
 }
 function updateFooterState() {
@@ -90,7 +105,46 @@ function showLoginForm() {
     // Auto-fill platform URL
     document.getElementById('platform-url').value = CONFIG.DEFAULT_API_URL;
 }
+/**
+ * Save credentials to storage (encrypted in production)
+ */
+async function saveRememberedCredentials(email, password) {
+    return new Promise((resolve) => {
+        chrome.storage.local.set({ 
+            rememberedCredentials: {
+                email: email,
+                // In production, you should encrypt the password
+                // For now, storing as-is (NOT RECOMMENDED for production)
+                password: password,
+                timestamp: Date.now()
+            }
+        }, () => {
+            resolve();
+        });
+    });
+}
 
+/**
+ * Get remembered credentials from storage
+ */
+async function getRememberedCredentials() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(['rememberedCredentials'], (result) => {
+            resolve(result.rememberedCredentials || null);
+        });
+    });
+}
+
+/**
+ * Clear remembered credentials
+ */
+async function clearRememberedCredentials() {
+    return new Promise((resolve) => {
+        chrome.storage.local.remove(['rememberedCredentials'], () => {
+            resolve();
+        });
+    });
+}
 async function extractPaperInfo() {
     try {
         showLoading('Analyzing page for paper information...');
@@ -356,6 +410,7 @@ async function handleLogin() {
     const platformUrl = document.getElementById('platform-url').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    const rememberMe = document.getElementById('remember-me').checked;
 
     // Basic validation
     if (!platformUrl || !email || !password) {
@@ -377,6 +432,16 @@ async function handleLogin() {
             // Store platform URL for future use
             await saveToStorage('platformUrl', platformUrl);
 
+            // Handle Remember Me
+            if (rememberMe) {
+                await saveRememberedCredentials(email, password);
+                console.log('Credentials saved for next login');
+            } else {
+                // Clear any previously saved credentials
+                await clearRememberedCredentials();
+                console.log('Credentials cleared');
+            }
+
             // Update footer state
             updateFooterState();
 
@@ -386,7 +451,7 @@ async function handleLogin() {
             showError('Login failed. Please check your credentials.', true);
         }
     } catch (error) {
-        console.error('Login error:', error, true);
+        console.error('Login error:', error);
         showError('Login failed. Please try again.');
     }
 }
@@ -571,6 +636,7 @@ async function submitPaperRequest(paperData) {
         showError('Network error. Please try again.');
     }
 }
+
 async function handleLogout() {
     try {
         if (userSession && userSession.platformUrl) {
@@ -581,8 +647,10 @@ async function handleLogout() {
             });
         }
 
-        // Clear local storage
-        await clearStorage();
+        // Clear only user session data, NOT remembered credentials
+        // This allows "Remember Me" to persist across logouts
+        await chrome.storage.local.remove(['userSession', 'platformUrl', 'firstRunCompleted']);
+
         userSession = null;
         currentPaperData = null;
         extractedPaperTitle = null;
@@ -591,6 +659,9 @@ async function handleLogout() {
         updateFooterState();
 
         showLoginForm();
+        
+        // Load remembered credentials if available
+        await loadRememberedCredentials();
     } catch (error) {
         console.error('Logout error:', error);
         // Still show login form even if logout request fails

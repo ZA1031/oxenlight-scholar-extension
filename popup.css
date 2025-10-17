@@ -514,3 +514,26 @@ body {
 .platform-url {
     display: none;
 }
+.remember-me {
+    margin-bottom: 16px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: #333;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    cursor: pointer;
+    accent-color: #001349;
+}
+
+.checkbox-label span {
+    font-weight: 500;
+}
