@@ -56,13 +56,13 @@ async function initializeExtension() {
 }
 async function loadRememberedCredentials() {
     const credentials = await getRememberedCredentials();
-    
+
     if (credentials) {
         // Auto-fill the form
         document.getElementById('email').value = credentials.email;
         document.getElementById('password').value = credentials.password;
         document.getElementById('remember-me').checked = true;
-        
+
         console.log('Loaded remembered credentials for:', credentials.email);
     }
 }
@@ -110,7 +110,7 @@ function showLoginForm() {
  */
 async function saveRememberedCredentials(email, password) {
     return new Promise((resolve) => {
-        chrome.storage.local.set({ 
+        chrome.storage.local.set({
             rememberedCredentials: {
                 email: email,
                 // In production, you should encrypt the password
@@ -152,25 +152,44 @@ async function extractPaperInfo() {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
         if (!tab) {
-            throw new Error('No active tab found');
+            console.log('No active tab found');
+            showManualForm();
+            return;
+        }
+
+        // Check if we can inject content script (avoid errors on restricted pages)
+        if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+            console.log('Cannot extract from Chrome internal pages');
+            showManualForm();
+            return;
         }
 
         // Inject content script to extract paper data
         const results = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             function: extractPaperDataFromPage
+        }).catch(error => {
+            console.log('Content script injection failed:', error.message);
+            return null;
         });
 
-        const paperData = results[0]?.result;
+        if (!results || !results[0]?.result) {
+            console.log('No paper data extracted from page');
+            showManualForm();
+            return;
+        }
+
+        const paperData = results[0].result;
 
         if (paperData && paperData.title) {
             extractedPaperTitle = paperData.title;
             await fetchPaperMetadata(paperData.title);
         } else {
+            console.log('No paper title found on page');
             showManualForm();
         }
     } catch (error) {
-        console.error('Error extracting paper info:', error);
+        console.log('Paper extraction failed:', error.message);
         showManualForm();
     }
 }
@@ -178,6 +197,11 @@ async function extractPaperInfo() {
 async function fetchPaperMetadata(paperTitle) {
     try {
         showLoading('Fetching paper metadata from database...');
+
+        if (!userSession || !userSession.platformUrl) {
+            console.log('No user session available');
+            throw new Error('Authentication required');
+        }
 
         const apiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/auto_fill_paper_details`;
         console.log('Fetching metadata from:', apiUrl);
@@ -192,19 +216,26 @@ async function fetchPaperMetadata(paperTitle) {
             },
             body: formData,
             credentials: 'include'
+        }).catch(error => {
+            console.log('Network error fetching metadata:', error.message);
+            throw new Error('Network error');
         });
 
         console.log('Metadata API response status:', response.status);
 
         if (!response.ok) {
+            console.log('API response not OK:', response.status);
             throw new Error(`API request failed with status ${response.status}`);
         }
 
-        const result = await response.json();
+        const result = await response.json().catch(error => {
+            console.log('JSON parsing error:', error.message);
+            throw new Error('Invalid response from server');
+        });
+
         console.log('Metadata API result:', result);
 
         if (result.status === 'success' && result.data && result.data.length > 0) {
-            // Use the best matching paper (first result after sorting by similarity)
             const bestMatch = result.data[0];
             displayPaperInfo(bestMatch);
         } else {
@@ -219,104 +250,17 @@ async function fetchPaperMetadata(paperTitle) {
             displayPaperInfo(fallbackData);
         }
     } catch (error) {
-        console.error('Error fetching paper metadata:', error);
-        // Fall back to basic extracted data
+        console.log('Metadata fetch failed:', error.message);
+        // Fall back to basic extracted data without throwing error
         const fallbackData = {
             title: paperTitle,
             authors: 'Not available',
             venue: 'Not available',
             year: 'Not available',
-            summary: 'Error fetching metadata'
+            summary: 'Error fetching metadata: ' + error.message
         };
         displayPaperInfo(fallbackData);
     }
-}
-
-function displayPaperInfo(paperData) {
-    // Set all the metadata fields
-    document.getElementById('paper-title').textContent = paperData.title || 'Unknown Title';
-    document.getElementById('paper-authors').textContent = paperData.authors || 'Not available';
-    document.getElementById('paper-venue').textContent = paperData.venue || 'Not available';
-    document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Not available';
-    document.getElementById('paper-citations').textContent = paperData.citations ? `${paperData.citations} citations` : 'No citations';
-    document.getElementById('paper-type').textContent = paperData.type || 'Article';
-
-    // Set paper link
-    const paperLink = document.getElementById('paper-link');
-    if (paperData.link && paperData.link !== '#') {
-        paperLink.href = paperData.link;
-        paperLink.textContent = 'View original paper';
-        paperLink.style.color = '';
-        paperLink.style.pointerEvents = '';
-    } else {
-        paperLink.href = '#';
-        paperLink.textContent = 'No source available';
-        paperLink.style.color = '#999';
-        paperLink.style.pointerEvents = 'none';
-    }
-
-    // Show peer reviewed badge if applicable
-    const peerReviewedBadge = document.getElementById('peer-reviewed-badge');
-    if (paperData.peer_reviewed) {
-        peerReviewedBadge.classList.remove('hidden');
-    } else {
-        peerReviewedBadge.classList.add('hidden');
-    }
-
-    // Handle read more functionality for long summaries
-    const summaryElement = document.getElementById('paper-summary');
-    const readMoreBtn = document.getElementById('read-more-btn');
-
-    // Reset summary element
-    summaryElement.classList.remove('expanded');
-    summaryElement.style.maxHeight = '';
-    summaryElement.style.overflow = '';
-
-    if (paperData.summary && paperData.summary.length > 200) {
-        // Truncate summary initially
-        summaryElement.textContent = paperData.summary.substring(0, 200) + '...';
-        readMoreBtn.classList.remove('hidden');
-
-        // Remove any existing event listeners and add new one
-        readMoreBtn.replaceWith(readMoreBtn.cloneNode(true));
-        const newReadMoreBtn = document.getElementById('read-more-btn');
-
-        newReadMoreBtn.addEventListener('click', function () {
-            if (summaryElement.classList.contains('expanded')) {
-                // Collapse
-                summaryElement.textContent = paperData.summary.substring(0, 200) + '...';
-                summaryElement.classList.remove('expanded');
-                newReadMoreBtn.textContent = 'Read more';
-            } else {
-                // Expand
-                summaryElement.textContent = paperData.summary;
-                summaryElement.classList.add('expanded');
-                newReadMoreBtn.textContent = 'Read less';
-            }
-        });
-
-        newReadMoreBtn.textContent = 'Read more';
-    } else {
-        // Show full summary if short
-        summaryElement.textContent = paperData.summary || 'No summary available';
-        readMoreBtn.classList.add('hidden');
-    }
-
-    // Store paper data for later use
-    currentPaperData = {
-        title: paperData.title,
-        link: paperData.link || '',
-        authors: paperData.authors || '',
-        year_published: paperData.year_published || paperData.year || '',
-        type: paperData.type || 'Article',
-        summary: paperData.summary || '',
-        venue: paperData.venue || '',
-        citations: paperData.citations || 0,
-        peer_reviewed: paperData.peer_reviewed || 0
-    };
-
-    hideAllSections();
-    paperInfoEl.classList.remove('hidden');
 }
 
 function showManualForm() {
@@ -364,6 +308,12 @@ function setupEventListeners() {
         }
     });
 
+    // Read More button - use event delegation
+    document.addEventListener('click', function (e) {
+        if (e.target.id === 'read-more-btn') {
+            toggleReadMore();
+        }
+    });
     // Footer actions - Use event delegation for dynamically shown elements
     document.addEventListener('click', function (e) {
         // Open Dashboard
@@ -659,7 +609,7 @@ async function handleLogout() {
         updateFooterState();
 
         showLoginForm();
-        
+
         // Load remembered credentials if available
         await loadRememberedCredentials();
     } catch (error) {
@@ -689,7 +639,20 @@ function openDashboard(e = null) {
         showError('Please login first');
     }
 }
+function toggleReadMore() {
+    const summaryElement = document.getElementById('paper-summary');
+    const readMoreBtn = document.getElementById('read-more-btn');
 
+    if (summaryElement.classList.contains('expanded')) {
+        // Collapse
+        summaryElement.classList.remove('expanded');
+        readMoreBtn.textContent = 'Read more';
+    } else {
+        // Expand
+        summaryElement.classList.add('expanded');
+        readMoreBtn.textContent = 'Read less';
+    }
+}
 // Content script function to extract paper data
 function extractPaperDataFromPage() {
     const paperData = {};
@@ -885,13 +848,14 @@ function displayPaperInfo(paperData) {
     document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Not available';
     document.getElementById('paper-citations').textContent = paperData.citations ? `${paperData.citations} citations` : 'No citations';
     document.getElementById('paper-type').textContent = paperData.type || 'Article';
-    document.getElementById('paper-summary').textContent = paperData.summary || 'No summary available';
 
     // Set paper link
     const paperLink = document.getElementById('paper-link');
     if (paperData.link && paperData.link !== '#') {
         paperLink.href = paperData.link;
         paperLink.textContent = 'View original paper';
+        paperLink.style.color = '';
+        paperLink.style.pointerEvents = '';
     } else {
         paperLink.href = '#';
         paperLink.textContent = 'No source available';
@@ -911,17 +875,18 @@ function displayPaperInfo(paperData) {
     const summaryElement = document.getElementById('paper-summary');
     const readMoreBtn = document.getElementById('read-more-btn');
 
+    // Reset summary element
+    summaryElement.classList.remove('expanded');
+    summaryElement.textContent = paperData.summary || 'No summary available';
+
     if (paperData.summary && paperData.summary.length > 200) {
         readMoreBtn.classList.remove('hidden');
-        readMoreBtn.addEventListener('click', function () {
-            summaryElement.classList.toggle('expanded');
-            readMoreBtn.textContent = summaryElement.classList.contains('expanded') ? 'Read less' : 'Read more';
-        });
+        readMoreBtn.textContent = 'Read more';
     } else {
         readMoreBtn.classList.add('hidden');
     }
 
-    // Store paper data for later use - ensure all fields are properly set
+    // Store paper data for later use
     currentPaperData = {
         title: paperData.title,
         link: paperData.link || '',

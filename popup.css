@@ -50,6 +50,7 @@ body {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
@@ -177,7 +178,7 @@ body {
     font-size: 12px;
 }
 
-.form-field input, 
+.form-field input,
 .form-field textarea {
     width: 100%;
     padding: 6px;
@@ -189,7 +190,7 @@ body {
     font-family: inherit;
 }
 
-.form-field input:focus, 
+.form-field input:focus,
 .form-field textarea:focus {
     outline: none;
     border-color: #001349;
@@ -228,6 +229,7 @@ body {
 .btn-primary {
     background-color: #001349;
     color: white;
+    font-size: 12px;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -477,13 +479,13 @@ body {
         grid-template-columns: 1fr;
         gap: 8px;
     }
-    
+
     .paper-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
-    
+
     .paper-badges {
         align-self: flex-start;
     }
@@ -514,9 +516,6 @@ body {
 .platform-url {
     display: none;
 }
-.remember-me {
-    margin-bottom: 16px;
-}
 
 .checkbox-label {
     display: flex;
@@ -525,15 +524,19 @@ body {
     font-size: 12px;
     color: #333;
     user-select: none;
+    gap: 6px; /* Added gap for better spacing */
 }
 
 .checkbox-label input[type="checkbox"] {
     width: auto;
-    margin-right: 8px;
     cursor: pointer;
     accent-color: #001349;
+    margin: 0; /* Ensure no margin is affecting alignment */
+    position: relative;
+    top: 1px; /* Slight adjustment to better align with text */
 }
 
 .checkbox-label span {
     font-weight: 500;
+    line-height: 1; /* Ensure consistent line height */
 }
