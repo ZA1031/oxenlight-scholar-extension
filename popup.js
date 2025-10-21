@@ -33,6 +33,10 @@ async function initializeExtension() {
         // Update footer based on authentication state
         updateFooterState();
 
+        // Setup event listeners including manual form auto-fill
+        setupEventListeners();
+        setupManualFormAutoFill(); // Add this line
+
         if (userSession && userSession.isAuthenticated) {
             // User is logged in, proceed to extract paper info
             await extractPaperInfo();
@@ -54,6 +58,7 @@ async function initializeExtension() {
         showLoginForm();
     }
 }
+
 async function loadRememberedCredentials() {
     const credentials = await getRememberedCredentials();
 
@@ -267,9 +272,17 @@ function showManualForm() {
     hideAllSections();
     manualFormEl.classList.remove('hidden');
 
-    // If we have an extracted title, pre-fill it
+    // Reset auto-fill results
+    document.getElementById('manual-auto-fill-results').style.display = 'none';
+    document.getElementById('manual-auto-fill-btn').removeAttribute('data-kt-indicator');
+
+    // If we have an extracted title, pre-fill it and trigger auto-fill
     if (extractedPaperTitle) {
         document.getElementById('manual-title').value = extractedPaperTitle;
+        // Auto-trigger search after a short delay
+        setTimeout(() => {
+            handleManualAutoFill();
+        }, 500);
     }
 }
 
@@ -483,7 +496,6 @@ async function requestPaper() {
 
     await submitPaperRequest(currentPaperData);
 }
-
 async function submitManualRequest() {
     const title = document.getElementById('manual-title').value.trim();
 
@@ -492,8 +504,16 @@ async function submitManualRequest() {
         return;
     }
 
+    // Process the title: trim special characters from start and end
+    const processedTitle = processPaperTitle(title);
+
+    if (!processedTitle) {
+        showError('Please enter a valid paper title');
+        return;
+    }
+
     const paperData = {
-        title: title,
+        title: processedTitle,
         authors: document.getElementById('manual-authors').value.trim(),
         year: document.getElementById('manual-year').value.trim(),
         venue: document.getElementById('manual-venue').value.trim(),
@@ -507,6 +527,37 @@ async function submitManualRequest() {
     await submitPaperRequest(paperData);
 }
 
+function processPaperTitle(title) {
+    if (!title) return '';
+
+    let processed = title.trim();
+
+    // Define characters to trim from start and end
+    const specialChars = ['.', ',', ';', ':', '!', '?', '-', '_', '(', ')', '[', ']', '{', '}', '"', "'", ' ', '\t', '\n'];
+
+    // Trim from start
+    let startIndex = 0;
+    while (startIndex < processed.length && specialChars.includes(processed[startIndex])) {
+        startIndex++;
+    }
+
+    // Trim from end
+    let endIndex = processed.length - 1;
+    while (endIndex >= 0 && specialChars.includes(processed[endIndex])) {
+        endIndex--;
+    }
+
+    // Extract the cleaned title
+    if (startIndex > endIndex) {
+        // If everything was trimmed, return empty string
+        return '';
+    }
+
+    processed = processed.substring(startIndex, endIndex + 1);
+
+    return processed.trim();
+}
+
 async function submitPaperRequest(paperData) {
     try {
         showLoading('Checking for duplicates...');
@@ -514,7 +565,7 @@ async function submitPaperRequest(paperData) {
         const peerReviewedValue = paperData.peer_reviewed === true ? 1 : 0;
 
         const requestData = {
-            name: paperData.title,
+            name: paperData.title, // This is now the processed title
             paper_link: paperData.link || '',
             authors: paperData.authors || '',
             year_published: paperData.year_published || paperData.year || '',
@@ -538,7 +589,7 @@ async function submitPaperRequest(paperData) {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                paper_title: paperData.title
+                paper_title: paperData.title // Use processed title for duplicate check
             }),
             credentials: 'include'
         });
@@ -841,8 +892,11 @@ function hideAllSections() {
 }
 
 function displayPaperInfo(paperData) {
+    // Process the title to ensure consistency
+    const processedTitle = processPaperTitle(paperData.title) || paperData.title;
+
     // Set all the metadata fields
-    document.getElementById('paper-title').textContent = paperData.title || 'Unknown Title';
+    document.getElementById('paper-title').textContent = processedTitle || 'Unknown Title';
     document.getElementById('paper-authors').textContent = paperData.authors || 'Not available';
     document.getElementById('paper-venue').textContent = paperData.venue || 'Not available';
     document.getElementById('paper-year').textContent = paperData.year_published || paperData.year || 'Not available';
@@ -886,9 +940,9 @@ function displayPaperInfo(paperData) {
         readMoreBtn.classList.add('hidden');
     }
 
-    // Store paper data for later use
+    // Store paper data for later use (use processed title)
     currentPaperData = {
-        title: paperData.title,
+        title: processedTitle,
         link: paperData.link || '',
         authors: paperData.authors || '',
         year_published: paperData.year_published || paperData.year || '',
@@ -901,4 +955,206 @@ function displayPaperInfo(paperData) {
 
     hideAllSections();
     paperInfoEl.classList.remove('hidden');
+}
+
+// Setup event listeners for manual form auto-fill
+function setupManualFormAutoFill() {
+    const autoFillBtn = document.getElementById('manual-auto-fill-btn');
+    const manualTitleInput = document.getElementById('manual-title');
+    const resultsContainer = document.getElementById('manual-auto-fill-results');
+
+    // Auto-fill button click
+    autoFillBtn.addEventListener('click', handleManualAutoFill);
+
+    // Enter key support for auto-fill
+    manualTitleInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleManualAutoFill();
+        }
+    });
+
+    // Real-time search with debouncing
+    let debounceTimer;
+    manualTitleInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+
+        if (query.length < 3) {
+            resultsContainer.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            handleManualAutoFill();
+        }, 500);
+    });
+
+    // Click outside to close results
+    document.addEventListener('click', (e) => {
+        if (!manualTitleInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+            resultsContainer.style.display = 'none';
+        }
+    });
+}
+
+// Handle manual form auto-fill
+async function handleManualAutoFill() {
+    const titleInput = document.getElementById('manual-title');
+    const resultsContainer = document.getElementById('manual-auto-fill-results');
+    const autoFillBtn = document.getElementById('manual-auto-fill-btn');
+
+    const paperTitle = titleInput.value.trim();
+
+    if (!paperTitle) {
+        showError('Please enter a paper title first');
+        return;
+    }
+
+    if (!userSession || !userSession.isAuthenticated) {
+        showError('Please login first to use auto-fill');
+        return;
+    }
+
+    try {
+        // Show loading state
+        autoFillBtn.setAttribute('data-kt-indicator', 'on');
+        resultsContainer.innerHTML = '<div class="auto-fill-loading"><div class="spinner"></div>Searching for papers...</div>';
+        resultsContainer.style.display = 'block';
+
+        const apiUrl = `${userSession.platformUrl}/backend/oxenlight_scholar/auto_fill_paper_details`;
+
+        const formData = new URLSearchParams();
+        formData.append('paper_title', paperTitle);
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData,
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Clear loading state
+        autoFillBtn.removeAttribute('data-kt-indicator');
+
+        if (result.status === 'success' && result.data && result.data.length > 0) {
+            displayManualAutoFillResults(result.data);
+        } else {
+            resultsContainer.innerHTML = '<div class="no-results">No matching papers found. Please check the title or try manual entry.</div>';
+        }
+    } catch (error) {
+        console.error('Auto-fill error:', error);
+        autoFillBtn.removeAttribute('data-kt-indicator');
+        resultsContainer.innerHTML = '<div class="no-results">Error fetching paper details. Please try manual entry.</div>';
+    }
+}
+
+// Display auto-fill results for manual form
+function displayManualAutoFillResults(papers) {
+    const resultsContainer = document.getElementById('manual-auto-fill-results');
+
+    resultsContainer.innerHTML = '';
+
+    papers.forEach((paper, index) => {
+        const similarity = Math.round(paper.similarity || 0);
+        const similarityPercent = Math.min(100, Math.max(0, similarity));
+
+        const paperElement = document.createElement('div');
+        paperElement.className = 'auto-fill-item';
+        paperElement.innerHTML = `
+            <div class="auto-fill-title">${escapeHtml(paper.title)}</div>
+            <div class="auto-fill-meta">
+                <span>👤 ${escapeHtml(paper.authors || 'Unknown authors')}</span>
+                <span>📅 ${paper.year_published || 'Unknown year'}</span>
+                <span>🏛️ ${escapeHtml(paper.venue || 'Unknown venue')}</span>
+            </div>
+            <div class="auto-fill-similarity">
+                <div class="similarity-bar">
+                    <div class="similarity-fill" style="width: ${similarityPercent}%"></div>
+                </div>
+                <div class="similarity-text">${similarityPercent}% match</div>
+            </div>
+        `;
+
+        paperElement.addEventListener('click', () => {
+            selectManualPaper(paper);
+        });
+
+        resultsContainer.appendChild(paperElement);
+    });
+
+    resultsContainer.style.display = 'block';
+}
+
+// Select a paper from auto-fill results
+function selectManualPaper(paper) {
+    // Fill the form fields
+    document.getElementById('manual-title').value = paper.title || '';
+    document.getElementById('manual-authors').value = paper.authors || '';
+    document.getElementById('manual-year').value = paper.year_published || '';
+    document.getElementById('manual-venue').value = paper.venue || '';
+
+    // Hide results
+    document.getElementById('manual-auto-fill-results').style.display = 'none';
+
+    // Store the selected paper data for submission
+    currentPaperData = {
+        title: paper.title,
+        link: paper.link || '',
+        authors: paper.authors || '',
+        year_published: paper.year_published || '',
+        type: paper.type || 'Article',
+        summary: paper.summary || '',
+        venue: paper.venue || '',
+        citations: paper.citations || 0,
+        peer_reviewed: paper.peer_reviewed ? 1 : 0
+    };
+
+    // Show success feedback
+    showTemporaryMessage('Paper details auto-filled!', 'success');
+}
+
+// Show temporary message
+function showTemporaryMessage(message, type = 'info') {
+    const messageEl = document.createElement('div');
+    messageEl.className = `temp-message temp-message-${type}`;
+    messageEl.textContent = message;
+    messageEl.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'success' ? '#d4edda' : '#fff3cd'};
+        color: ${type === 'success' ? '#155724' : '#856404'};
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: 1px solid ${type === 'success' ? '#c3e6cb' : '#ffeaa7'};
+        font-size: 12px;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    `;
+
+    document.body.appendChild(messageEl);
+
+    setTimeout(() => {
+        messageEl.remove();
+    }, 3000);
+}
+
+// Utility function to escape HTML
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }

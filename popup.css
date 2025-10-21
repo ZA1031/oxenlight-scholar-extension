@@ -147,6 +147,14 @@ body {
     border: 1px solid #e0e0e0;
 }
 
+#manual-auto-fill-btn {
+    width: 30px !important;
+}
+
+#manual-auto-fill-btn .indicator-label {
+    transition: opacity 0.2s ease;
+}
+
 .manual-form-header {
     display: flex;
     align-items: center;
@@ -259,7 +267,6 @@ body {
     text-align: center;
     padding: 12px;
     border-radius: 4px;
-    margin-bottom: 12px;
 }
 
 .success-message {
@@ -524,19 +531,184 @@ body {
     font-size: 12px;
     color: #333;
     user-select: none;
-    gap: 6px; /* Added gap for better spacing */
+    gap: 8px;
+    /* Added gap for better spacing */
 }
 
 .checkbox-label input[type="checkbox"] {
     width: auto;
     cursor: pointer;
     accent-color: #001349;
-    margin: 0; /* Ensure no margin is affecting alignment */
+    margin: 0;
+    /* Ensure no margin is affecting alignment */
     position: relative;
-    top: 1px; /* Slight adjustment to better align with text */
+    top: 2px;
+    /* Slight adjustment to better align with text */
 }
 
 .checkbox-label span {
     font-weight: 500;
-    line-height: 1; /* Ensure consistent line height */
+    line-height: 1;
+    /* Ensure consistent line height */
+}
+
+/* Auto-fill Section Styles */
+.auto-fill-section {
+    margin-bottom: 16px;
+}
+
+.input-group {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.input-group .form-control {
+    flex: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    white-space: nowrap;
+    padding: 8px 12px;
+    min-width: 40px;
+    /* Add minimum width to ensure content fits */
+}
+
+.auto-fill-results {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+
+.auto-fill-item {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.auto-fill-item:last-child {
+    border-bottom: none;
+}
+
+.auto-fill-item:hover {
+    background-color: #e9ecef;
+}
+
+.auto-fill-item.active {
+    background-color: #e3f2fd;
+    border-left: 3px solid #001349;
+}
+
+.auto-fill-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: #2b2b40;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.auto-fill-meta {
+    font-size: 11px;
+    color: #666;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.auto-fill-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.auto-fill-similarity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+}
+
+.similarity-bar {
+    flex: 1;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-right: 8px;
+}
+
+.similarity-fill {
+    height: 100%;
+    background-color: #28a745;
+    transition: width 0.3s ease;
+}
+
+.similarity-text {
+    font-size: 10px;
+    font-weight: 600;
+    color: #666;
+    min-width: 40px;
+}
+
+.no-results {
+    padding: 16px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+}
+
+/* Loading state for auto-fill */
+.auto-fill-loading {
+    padding: 16px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+}
+
+.auto-fill-loading .spinner {
+    width: 16px;
+    height: 16px;
+    margin: 0 auto 8px;
+}
+
+.btn .indicator-progress {
+    display: none;
+    vertical-align: middle;
+}
+
+.btn[data-kt-indicator="on"] .indicator-label {
+    display: none;
+}
+
+.btn[data-kt-indicator="on"] .indicator-progress {
+    display: inline-block !important;
+    /* Add !important to override inline styles */
+}
+
+/* Remove the inline style from HTML and handle it via CSS */
+.btn .indicator-progress span {
+    vertical-align: middle;
+}
+
+.btn.loading .indicator-label {
+    display: none;
+}
+
+.btn.loading .indicator-progress {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn .indicator-progress .spinner-border {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
 }
