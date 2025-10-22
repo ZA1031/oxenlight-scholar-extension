@@ -411,9 +411,10 @@ body {
     line-height: 1.5;
     color: #444;
     margin: 0;
-    max-height: 60px;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
+    max-height: 100px;
+    /* overflow: hidden; */
+    overflow-y: auto;
+    /* transition: max-height 0.3s ease; */
 }
 
 .summary-content p.expanded {
@@ -422,14 +423,14 @@ body {
 
 .summary-content p::after {
     content: '';
-    position: absolute;
+    /* position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     height: 20px;
     background: linear-gradient(transparent, white);
     opacity: 1;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease; */
 }
 
 .summary-content p.expanded::after {

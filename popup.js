@@ -19,7 +19,7 @@ let extractedPaperTitle = null;
 // Initialize when popup opens
 document.addEventListener('DOMContentLoaded', async () => {
     await initializeExtension();
-    setupEventListeners();
+    // setupEventListeners();
 });
 
 async function initializeExtension() {
@@ -931,14 +931,16 @@ function displayPaperInfo(paperData) {
 
     // Reset summary element
     summaryElement.classList.remove('expanded');
-    summaryElement.textContent = paperData.summary || 'No summary available';
+    summaryElement.textContent = paperData.full_summary || paperData.summary || 'No summary available';
 
-    if (paperData.summary && paperData.summary.length > 200) {
-        readMoreBtn.classList.remove('hidden');
-        readMoreBtn.textContent = 'Read more';
-    } else {
-        readMoreBtn.classList.add('hidden');
-    }
+    console.log(paperData.summary)
+    readMoreBtn.classList.add('hidden');
+    // if (paperData.summary && paperData.summary.length > 150) {
+    //     readMoreBtn.classList.remove('hidden');
+    //     readMoreBtn.textContent = 'Read more';
+    // } else {
+    //     readMoreBtn.classList.add('hidden');
+    // }
 
     // Store paper data for later use (use processed title)
     currentPaperData = {

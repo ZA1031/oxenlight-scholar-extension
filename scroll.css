@@ -1,0 +1,193 @@
+/* Enhanced Scrollbar Styles */
+.auto-fill-results,
+.paper-summary p,
+.summary-content p {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f5f5f5;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.auto-fill-results::-webkit-scrollbar,
+.paper-summary p::-webkit-scrollbar,
+.summary-content p::-webkit-scrollbar {
+    width: 6px;
+}
+
+.auto-fill-results::-webkit-scrollbar-track,
+.paper-summary p::-webkit-scrollbar-track,
+.summary-content p::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 3px;
+}
+
+.auto-fill-results::-webkit-scrollbar-thumb,
+.paper-summary p::-webkit-scrollbar-thumb,
+.summary-content p::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+}
+
+.auto-fill-results::-webkit-scrollbar-thumb:hover,
+.paper-summary p::-webkit-scrollbar-thumb:hover,
+.summary-content p::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Smooth scrolling for all scrollable elements */
+.auto-fill-results,
+.paper-summary p,
+.summary-content p,
+.content-section {
+    scroll-behavior: smooth;
+}
+
+/* Enhanced summary scroll area */
+.summary-content p {
+    max-height: 100px;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-right: -4px;
+}
+
+.summary-content p.expanded {
+    max-height: 500px;
+}
+
+/* Custom scrollbar for auto-fill results */
+.auto-fill-results {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #001349 #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+
+.auto-fill-results::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 0 6px 6px 0;
+}
+
+.auto-fill-results::-webkit-scrollbar-thumb {
+    background: #001349;
+    border-radius: 3px;
+}
+
+.auto-fill-results::-webkit-scrollbar-thumb:hover {
+    background: #2b2b40;
+}
+
+/* Scroll container improvements */
+.content-section {
+    max-height: 500px;
+    overflow-y: auto;
+    /* padding-right: 8px; */
+    /* margin-right: -8px; */
+}
+
+/* Hide scrollbar when not needed */
+.content-section:not(:hover)::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.content-section:hover::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+}
+
+/* Firefox specific */
+@supports (scrollbar-width: thin) {
+    .content-section {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
+    
+    .content-section:hover {
+        scrollbar-color: #c1c1c1 #f5f5f5;
+    }
+}
+
+/* Improved paper card scroll areas */
+.paper-card {
+    max-height: none;
+}
+
+/* Better scrolling for long forms */
+.manual-form {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for manual form */
+.manual-form::-webkit-scrollbar {
+    width: 4px;
+}
+
+.manual-form::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 2px;
+}
+
+.manual-form::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 2px;
+}
+
+.manual-form::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+
+/* Loading state scroll prevention */
+.loading {
+    overflow: hidden;
+}
+
+/* Enhanced auto-fill item hover states with smooth transitions */
+.auto-fill-item {
+    transition: all 0.2s ease;
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+}
+
+.auto-fill-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.auto-fill-item:active {
+    transform: translateX(2px) scale(0.98);
+}
+
+/* Smooth transitions for expandable sections */
+.summary-content {
+    transition: max-height 0.3s ease;
+}
+
+/* Improved button interactions */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* Focus states for better accessibility */
+.form-control:focus,
+.btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 19, 73, 0.2);
+}
+
+/* Smooth appearance for hidden elements */
+.hidden {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.content-section:not(.hidden) {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
