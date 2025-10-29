@@ -420,13 +420,11 @@ async function handleLogin() {
 }
 
 async function performLogin(platformUrl, email, password) {
-    // Your login API endpoint
-    const loginUrl = `${platformUrl}/login/validate_login`;
+    const loginUrl = `${platformUrl}/login/api_validate_login`;
 
     try {
         console.log('Attempting login to:', loginUrl);
 
-        // Create form data exactly like your web form
         const formData = new URLSearchParams();
         formData.append('email', email);
         formData.append('password', password);
@@ -437,21 +435,32 @@ async function performLogin(platformUrl, email, password) {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: formData,
-            credentials: 'include' // Important for session cookies
+            credentials: 'include'
         });
 
         console.log('Login response status:', response.status);
+        
+        // Get the raw response text first for debugging
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
 
-        // For your current setup, we'll check if we can access a protected page
-        const canAccessScholar = await checkScholarAccess(platformUrl);
+        // Try to parse as JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+            console.log('Parsed JSON result:', result);
+        } catch (e) {
+            console.error('Failed to parse JSON:', e);
+            return false;
+        }
 
-        if (canAccessScholar) {
+        if (result.success) {
             // Store user session
             userSession = {
                 isAuthenticated: true,
                 userData: {
                     email: email,
-                    user_role: 'student' // Assuming student for now
+                    user_role: 'student'
                 },
                 platformUrl: platformUrl,
                 timestamp: Date.now()
@@ -460,8 +469,12 @@ async function performLogin(platformUrl, email, password) {
             await saveUserSession(userSession);
             return true;
         } else {
+            console.log('Login failed:', result.message);
+            // Show the specific error message from the server
+            showError(result.message || 'Login failed. Please check your credentials.');
             return false;
         }
+
     } catch (error) {
         console.error('Login API error:', error);
         return false;
